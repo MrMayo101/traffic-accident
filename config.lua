@@ -1,33 +1,33 @@
 Config = {}
 
--- 黑屏持续时间（时间单位：毫秒）
+-- Black screen duration (time unit: milliseconds)
 -- 2000 = 2 秒 / 3500 = 3.5 秒
 Config.BlackoutTime = 5000
 
--- 视觉模糊持续视觉（时间单位：毫秒）
+-- Blurred vision duration (time unit: milliseconds)
 Config.BlurredVisionTime = 2000
 
--- 窗口抖动持续次数（整数 必须为正数）暂时未开放该功能
+-- Camera Shake duration (integer must be positive) This function is not available yet
 Config.ShakeCamNumber = 1
 
--- 启用车辆碰撞伤害检测（轻微）
+-- Enable vehicle collision damage detection (minor)
 Config.SlightFromDamage = true
 Config.SlightDamageRequired = 0.25
 
--- 启用车辆碰撞伤害检测（普通）
+-- Enable vehicle collision damage detection (normal)
 Config.NormalFromDamage = true
 Config.NormalDamageRequired = 10
 
--- 启用车辆碰撞伤害检测（严重）
+-- Enable vehicle collision damage detection (normal)
 Config.SevereFromDamage = true
 Config.SevereDamageRequired = 30
 
--- 启用车辆减速检测
--- 如果车辆超过此阈值，玩家将昏迷
+-- Enable vehicle deceleration detection
+-- If the vehicle exceeds this threshold, the player will be stunned
 Config.BlackoutFromSpeed = true
-Config.BlackoutSpeedRequired = 45 -- 速度单位：MPH
+Config.BlackoutSpeedRequired = 45 -- Speed ​​Unit: MPH
 
--- 如果玩家昏迷，则启用禁用控件的功能
+-- Enables disabling of controls if the player is unconscious
 Config.DisableControlsOnBlackout = true
 
 
@@ -47,29 +47,29 @@ Config.ShakeGameplayCam = 'SMALL_EXPLOSION_SHAKE'
 
 Config.SetTimecycleModifier = 'MP_corona_switch'
 -- TimecycleModifier timecycle_mods_1.xml
--- 模糊和扭曲效果：
--- MP_corona_switch：一种模糊或过渡效果，通常用于触发类似昏迷或眩晕的场景。(当前)
--- CAMERA_BW：黑白效果。
--- REDMIST：屏幕泛红，适合用在玩家受伤或激怒的场景。
--- NG_filmnoir_BW01：一种经典的黑白滤镜，类似旧电影效果。
+-- Blur and distortion effects:
+-- MP_corona_switch: A blur or transition effect, often used to trigger scenes like coma or dizziness. (Current)
+-- CAMERA_BW: Black and white effect.
+-- REDMIST: Reddish screen, suitable for scenes where the player is injured or angry.
+-- NG_filmnoir_BW01: A classic black and white filter, similar to the effect of old movies.
 
--- 视觉扭曲效果：
--- NG_filmic01：电影风格的滤镜，通常带有温暖色调。
--- NG_filmic02：稍微暗淡、带有冷色调的滤镜。
--- NG_filmic03：有更多的色调偏移和扭曲效果，适合某些特殊过场或梦境场景。
+-- Visual distortion effects:
+-- NG_filmic01: Film-style filter, usually with warm tones.
+-- NG_filmic02: A slightly darker filter with cold tones.
+-- NG_filmic03: Has more hue shifts and distortion effects, suitable for some special cutscenes or dream scenes.
 
--- 迷幻或醉酒效果：
--- spectator5：带有强烈颜色变化的迷幻效果。
--- drug_wobbly：屏幕扭曲、颜色失真，通常用于模拟醉酒或吸毒后的视觉效果。
--- drug_flying_base：类似迷幻的颜色扭曲，给人一种漂浮感。
+-- Psychedelic or drunken effects:
+-- spectator5: Psychedelic effect with strong color changes.
+-- drug_wobbly: Screen distortion and color distortion, often used to simulate the visual effects of being drunk or taking drugs.
+-- drug_flying_base: Psychedelic-like color distortion, giving a floating feeling.
 
--- 亮度和对比度调整：
--- hud_def_blur：轻微的模糊效果，用于 HUD 界面显示时。
--- default：重置为默认状态，即取消所有滤镜效果。
--- rply_saturation：提高饱和度，颜色看起来更鲜艳。
--- rply_contrast：提高对比度，适合用在阳光明媚或高亮场景。
+-- Brightness and contrast adjustment:
+-- hud_def_blur: A slight blur effect, used when the HUD interface is displayed.
+-- default: Reset to the default state, that is, cancel all filter effects.
+-- rply_saturation: Increase saturation, colors look more vivid.
+-- rply_contrast: Increase contrast, suitable for sunny or high-light scenes.
 
--- 战斗和惊悚场景效果：
--- rply_vignette：为屏幕添加黑暗的边缘，适合战斗或惊悚场景。
--- bullet_time：类似电影中的慢动作射击场景效果，屏幕有轻微模糊和时间扭曲。
--- WATER_splash：水下模糊效果，通常在玩家跳入水中时使用。
+-- Combat and thriller scene effects:
+-- rply_vignette: Adds dark edges to the screen, suitable for combat or thriller scenes.
+-- bullet_time: Similar to the slow-motion shooting scene effect in movies, the screen has a slight blur and time distortion.
+-- WATER_splash: Underwater blur effect, usually used when the player jumps into the water.

@@ -1,31 +1,31 @@
-local isAccident = false -- 是否发生车祸
-local oldBodyDamage = 0 -- veh生命值 上次记录数据
-local oldSpeed = 0 -- veh速度 上次记录数据
+Config = require 'config'
 
--- 封装 黑屏函数
+local isAccident = false -- Whether a car accident occurred
+local oldBodyDamage = 0 -- veh health value last recorded data
+local oldSpeed = 0 -- veh speed last recorded data
+
+-- Blackout Function
 local function blackOut()
 	if not isAccident then
 		isAccident = true
-		-- 此线程将在指定时间内使得玩家屏幕黑屏
-		Citizen.CreateThread(function()
-			DoScreenFadeOut(100) -- 淡入
-			-- 在过渡时间内等待
-			while not IsScreenFadedOut() do
-				Citizen.Wait(0)
-			end
-			Citizen.Wait(Config.BlackoutTime) -- 配置的黑屏时间
-			DoScreenFadeIn(500) -- 淡出
-			isAccident = false
-		end)
+		DoScreenFadeOut(100) -- Fade out
+		-- Wait during the transition time
+		while not IsScreenFadedOut() do
+		
+		Wait(0)
+
+		end
+
+		Wait(Config.BlackoutTime) -- Configured black screen time
+		DoScreenFadeIn(500) -- Fade in
+		isAccident = false
 	end
 end
 
--- 封装 窗口抖动函数
+-- Camera Shake Function
 local function shakeCam()
 	if not isAccident then
 		isAccident = true
-		-- 此线程将在指定时间内使得玩家窗口抖动
-		Citizen.CreateThread(function()
 			ShakeGameplayCam(Config.ShakeGameplayCam, 1.0) -- 抖动
 			-- 抖动类型 (更新版本 b617d):
 			-- DEATH_FAIL_IN_EFFECT_SHAKE  
@@ -40,11 +40,10 @@ local function shakeCam()
 			-- SKY_DIVING_SHAKE  
 			-- VIBRATE_SHAKE
 			isAccident = false
-		end)
 	end
 end
 
--- 封装 视觉模糊函数
+-- Blurred Vision Function
 local function BlurredVision()
 	if not isAccident then
 		isAccident = true
@@ -58,12 +57,11 @@ local function BlurredVision()
 	end
 end
 
--- 封装 窗口抖动 and 视觉模糊 函数
+-- Camera Shake and Blurred Vision Function
 local function shakeCamAndBlurredVision()
 	if not isAccident then
 		isAccident = true
 		-- 此线程将在指定时间内使得玩家窗口视觉模糊
-		Citizen.CreateThread(function()
 			ShakeGameplayCam(Config.ShakeGameplayCam, 1.0) -- 抖动
 			-- 抖动类型 (更新版本 b617d):
 			-- DEATH_FAIL_IN_EFFECT_SHAKE  
@@ -78,85 +76,164 @@ local function shakeCamAndBlurredVision()
 			-- SKY_DIVING_SHAKE  
 			-- VIBRATE_SHAKE
 			SetTimecycleModifier(Config.SetTimecycleModifier) -- 模糊效果
-			Citizen.Wait(Config.BlurredVisionTime) -- 配置的黑屏时间
+			Wait(Config.BlurredVisionTime) -- 配置的黑屏时间
 			ClearTimecycleModifier() -- 清除模糊效果
 			isAccident = false
-		end)
 	end
 end
 
--- 主线程 函数
-Citizen.CreateThread(function()
-	while true do
-		Citizen.Wait(0)
-		-- 获取玩家所乘坐的车辆，如果存在则继续
-		local vehicle = GetVehiclePedIsIn(PlayerPedId(), false)
-		-- 检查实体是否存在
-		if DoesEntityExist(vehicle) then
-			local currentDamage = GetVehicleBodyHealth(vehicle)
-			-- 最大 1000，最小 0 (实际可能会出现负数)
-			-- 车辆在 0 时不一定会爆炸或无法驾驶。
 
-			-- 检查是否启用
+lib.onCache('vehicle', function()
+	local vehicle = cache.vehicle
+	if cache.vehicle ~= 0 or nil or false then
+		if DoesEntityExist(cache.vehicle) then
+			local currentDamage = GetVehicleBodyHealth(cache.vehicle)
+
 			if Config.SlightFromDamage then
-				-- 如果损坏情况发生变化，查看是否超出阈值
 				if currentDamage ~= oldBodyDamage then
 					if not isAccident and (currentDamage < oldBodyDamage) and ((oldBodyDamage - currentDamage) >= Config.SlightDamageRequired) and ((oldBodyDamage - currentDamage) < Config.NormalDamageRequired) then
-						shakeCam() -- 调用窗口抖动函数
+						shakeCam() -- Call camera shake function
 					end
 				end
 			end
-
-			-- 检查是否启用
-			if Config.NormalFromDamage then
-				-- 如果损坏情况发生变化，查看是否超出阈值
-				if currentDamage ~= oldBodyDamage then
-					if not isAccident and (currentDamage < oldBodyDamage) and ((oldBodyDamage - currentDamage) >= Config.NormalDamageRequired) and ((oldBodyDamage - currentDamage) < Config.SevereDamageRequired)  then
-						shakeCamAndBlurredVision() -- 调用窗口抖动 and 视觉模糊
-					end
+		-- Check if it is enabled
+		if Config.NormalFromDamage then
+			-- If the damage occurs, check if it exceeds the threshold
+			if currentDamage ~= oldBodyDamage then
+				if not isAccident and (currentDamage < oldBodyDamage) and ((oldBodyDamage - currentDamage) >= Config.NormalDamageRequired) and ((oldBodyDamage - currentDamage) < Config.SevereDamageRequired)  then
+					shakeCamAndBlurredVision() -- Call camera shake and blurred vision function
 				end
 			end
-
-			-- 检查是否启用
-			if Config.SevereFromDamage then
-				-- 如果损坏情况发生变化，查看是否超出阈值
-				if currentDamage ~= oldBodyDamage then
-					if not isAccident and (currentDamage < oldBodyDamage) and ((oldBodyDamage - currentDamage) >= Config.SevereDamageRequired) then
-						blackOut() -- 调用黑屏函数
-					end
-				end
-			end
-
-			oldBodyDamage = currentDamage -- 记录损伤
-
-			-- 是否启用速度检测
-			if Config.BlackoutFromSpeed then
-				local currentSpeed = GetEntitySpeed(vehicle) * 2.236936 -- 获取 车辆当前速度 速度单位：MPH
-				--local currentSpeed = GetVehicleDashboardSpeed(vehicle) * 2.236936 -- 获取 车辆当前速度 速度单位：MPH
-				-- 转换为 MPH: speed * 2.236936
-				-- 转换为 KPH: speed * 3.6
-				-- 速度检测
-				if currentSpeed ~= oldSpeed then
-					-- 当速度发生变化时，且属于减速并大于检测值时
-					if not isAccident and (currentSpeed < oldSpeed) and ((oldSpeed - currentSpeed) >= Config.BlackoutSpeedRequired) then
-						blackOut() -- 调用黑屏函数
-					end
-					oldSpeed = currentSpeed -- 记录速度
-				end
-			end
-		else
-			oldBodyDamage = 0
-			oldSpeed = 0
 		end
-		
-		-- 禁用玩家的控制
-		if isAccident and Config.DisableControlsOnBlackout then
-			-- https://github.com/Sighmir/FiveM-Scripts/blob/master/vrp/vrp_hotkeys/client.lua
-			DisableControlAction(0,71,true)
-			DisableControlAction(0,72,true)
-			DisableControlAction(0,63,true)
-			DisableControlAction(0,64,true)
-			DisableControlAction(0,75,true)
+
+		-- Check if it is enabled
+		if Config.NormalFromDamage then
+			-- If the damage occurs, check if it exceeds the threshold
+			if currentDamage ~= oldBodyDamage then
+				if not isAccident and (currentDamage < oldBodyDamage) and ((oldBodyDamage - currentDamage) >= Config.NormalDamageRequired) and ((oldBodyDamage - currentDamage) < Config.SevereDamageRequired)  then
+					shakeCamAndBlurredVision() -- Call camera shake and blurred vision function
+				end
+			end
 		end
+
+		-- Check if it is enabled
+		if Config.SevereFromDamage then
+			-- If the damage occurs, check if it exceeds the threshold
+			if currentDamage ~= oldBodyDamage then
+				if not isAccident and (currentDamage < oldBodyDamage) and ((oldBodyDamage - currentDamage) >= Config.SevereDamageRequired) then
+					blackOut() -- Call black out function
+				end
+			end
+		end
+
+		oldBodyDamage = currentDamage -- Record damage
+
+		-- Whether to enable speed detection
+		if Config.BlackoutFromSpeed then
+			local currentSpeed = GetEntitySpeed(vehicle) * 2.236936 -- Get the current speed of the vehicle. Speed ​​unit: MPH
+			--local currentSpeed ​​= GetVehicleDashboardSpeed(vehicle) * 2.236936 -- Get the current speed of the vehicle. Speed ​​unit: MPH
+			-- Convert to MPH: speed * 2.236936
+			-- Convert to KPH: speed * 3.6
+			-- Speed ​​detection
+			if currentSpeed ~= oldSpeed then
+				-- When the speed changes, and it is deceleration and greater than the detection value
+				if not isAccident and (currentSpeed < oldSpeed) and ((oldSpeed - currentSpeed) >= Config.BlackoutSpeedRequired) then
+					blackOut() -- Call black out function
+				end
+				oldSpeed = currentSpeed -- Record speed
+			end
+		end
+	else
+		oldBodyDamage = 0
+		oldSpeed = 0
+	end
+	
+	-- Disable player controls
+	if isAccident and Config.DisableControlsOnBlackout then
+		-- https://github.com/Sighmir/FiveM-Scripts/blob/master/vrp/vrp_hotkeys/client.lua
+		DisableControlAction(0,71,true)
+		DisableControlAction(0,72,true)
+		DisableControlAction(0,63,true)
+		DisableControlAction(0,64,true)
+		DisableControlAction(0,75,true)
+	end
+
 	end
 end)
+
+
+-- -- Main Thread Function
+-- CreateThread(function()
+-- 	while true do
+-- 		Wait(0)
+-- 		-- Get the vehicle the player is in, if it exists continue
+-- 		local vehicle = cache.vehicle
+-- 		-- Check if the entity exists
+-- 		if DoesEntityExist(vehicle) then
+-- 			local currentDamage = GetVehicleBodyHealth(vehicle)
+-- 			-- Maximum 1000, minimum 0 (actual may occur a negative number)
+-- 			-- A car that is in 0 will not necessarily explode or cannot drive.
+
+-- 			-- Check if it is enabled
+-- 			if Config.SlightFromDamage then
+-- 				-- If the damage occurs, check if it exceeds the threshold
+-- 				if currentDamage ~= oldBodyDamage then
+-- 					if not isAccident and (currentDamage < oldBodyDamage) and ((oldBodyDamage - currentDamage) >= Config.SlightDamageRequired) and ((oldBodyDamage - currentDamage) < Config.NormalDamageRequired) then
+-- 						shakeCam() -- Call camera shake function
+-- 					end
+-- 				end
+-- 			end
+
+-- 			-- Check if it is enabled
+-- 			if Config.NormalFromDamage then
+-- 				-- If the damage occurs, check if it exceeds the threshold
+-- 				if currentDamage ~= oldBodyDamage then
+-- 					if not isAccident and (currentDamage < oldBodyDamage) and ((oldBodyDamage - currentDamage) >= Config.NormalDamageRequired) and ((oldBodyDamage - currentDamage) < Config.SevereDamageRequired)  then
+-- 						shakeCamAndBlurredVision() -- Call camera shake and blurred vision function
+-- 					end
+-- 				end
+-- 			end
+
+-- 			-- Check if it is enabled
+-- 			if Config.SevereFromDamage then
+-- 				-- If the damage occurs, check if it exceeds the threshold
+-- 				if currentDamage ~= oldBodyDamage then
+-- 					if not isAccident and (currentDamage < oldBodyDamage) and ((oldBodyDamage - currentDamage) >= Config.SevereDamageRequired) then
+-- 						blackOut() -- Call black out function
+-- 					end
+-- 				end
+-- 			end
+
+-- 			oldBodyDamage = currentDamage -- Record damage
+
+-- 			-- Whether to enable speed detection
+-- 			if Config.BlackoutFromSpeed then
+-- 				local currentSpeed = GetEntitySpeed(vehicle) * 2.236936 -- Get the current speed of the vehicle. Speed ​​unit: MPH
+-- 				--local currentSpeed ​​= GetVehicleDashboardSpeed(vehicle) * 2.236936 -- Get the current speed of the vehicle. Speed ​​unit: MPH
+-- 				-- Convert to MPH: speed * 2.236936
+-- 				-- Convert to KPH: speed * 3.6
+-- 				-- Speed ​​detection
+-- 				if currentSpeed ~= oldSpeed then
+-- 					-- When the speed changes, and it is deceleration and greater than the detection value
+-- 					if not isAccident and (currentSpeed < oldSpeed) and ((oldSpeed - currentSpeed) >= Config.BlackoutSpeedRequired) then
+-- 						blackOut() -- Call black out function
+-- 					end
+-- 					oldSpeed = currentSpeed -- Record speed
+-- 				end
+-- 			end
+-- 		else
+-- 			oldBodyDamage = 0
+-- 			oldSpeed = 0
+-- 		end
+		
+-- 		-- Disable player controls
+-- 		if isAccident and Config.DisableControlsOnBlackout then
+-- 			-- https://github.com/Sighmir/FiveM-Scripts/blob/master/vrp/vrp_hotkeys/client.lua
+-- 			DisableControlAction(0,71,true)
+-- 			DisableControlAction(0,72,true)
+-- 			DisableControlAction(0,63,true)
+-- 			DisableControlAction(0,64,true)
+-- 			DisableControlAction(0,75,true)
+-- 		end
+-- 	end
+-- end)
