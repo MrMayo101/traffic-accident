@@ -26,8 +26,8 @@ end
 local function shakeCam()
 	if not isAccident then
 		isAccident = true
-			ShakeGameplayCam(Config.ShakeGameplayCam, 1.0) -- 抖动
-			-- 抖动类型 (更新版本 b617d):
+			ShakeGameplayCam(Config.ShakeGameplayCam, 1.0) -- Shake
+			-- Shake type (Build b617d):
 			-- DEATH_FAIL_IN_EFFECT_SHAKE  
 			-- DRUNK_SHAKE  
 			-- FAMILY5_DRUG_TRIP_SHAKE  
